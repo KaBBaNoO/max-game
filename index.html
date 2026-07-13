@@ -2,6 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <!-- Блокируем горизонтальную ориентацию -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Neon Jump</title>
     <style>
@@ -11,26 +12,47 @@
             background: #050510; 
             overflow: hidden; 
             touch-action: none; 
-            font-family: sans-serif; 
+            font-family: sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
         }
-        canvas { display: block; }
+        
+        /* Контейнер игры — фиксированная ширина для вертикального экрана */
+        #gameContainer {
+            position: relative;
+            width: 100%;
+            max-width: 420px;
+            height: 100vh;
+            max-height: 100vh;
+            background: #050510;
+            overflow: hidden;
+            box-shadow: 0 0 40px rgba(0, 255, 255, 0.2);
+        }
+        
+        canvas { 
+            display: block; 
+            width: 100%;
+            height: 100%;
+        }
         
         #ui { 
             position: absolute; 
-            top: 20px; 
-            left: 20px; 
-            right: 20px;
+            top: 15px; 
+            left: 15px; 
+            right: 15px;
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
             color: #fff; 
-            font-size: 20px; 
+            font-size: 16px; 
             text-shadow: 0 0 10px #0ff; 
             z-index: 10; 
             pointer-events: none; 
         }
-        #score { color: #0ff; font-weight: bold; font-size: 28px; }
-        #best { color: #ff0; font-size: 16px; }
+        #score { color: #0ff; font-weight: bold; font-size: 22px; }
+        #best { color: #ff0; font-size: 14px; }
 
         #gameOver {
             position: absolute;
@@ -45,26 +67,26 @@
             text-align: center;
         }
         #gameOver h1 {
-            font-size: 48px;
+            font-size: 36px;
             color: #ff0055;
             text-shadow: 0 0 20px #ff0055;
             margin: 0 0 20px 0;
             letter-spacing: 4px;
         }
         #gameOver .stats {
-            font-size: 24px;
+            font-size: 20px;
             margin: 10px 0;
             text-shadow: 0 0 10px #0ff;
         }
         #gameOver .stats span {
             color: #0ff;
             font-weight: bold;
-            font-size: 32px;
+            font-size: 26px;
         }
         #restartBtn {
             margin-top: 30px;
-            padding: 15px 40px;
-            font-size: 20px;
+            padding: 12px 35px;
+            font-size: 18px;
             background: transparent;
             color: #0ff;
             border: 2px solid #0ff;
@@ -72,7 +94,6 @@
             cursor: pointer;
             text-shadow: 0 0 10px #0ff;
             box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
-            transition: all 0.3s;
         }
         #restartBtn:active {
             background: #0ff;
@@ -90,24 +111,25 @@
             z-index: 20;
             color: #fff;
             text-align: center;
+            padding: 20px;
         }
         #startScreen h1 {
-            font-size: 42px;
+            font-size: 36px;
             color: #0ff;
             text-shadow: 0 0 20px #0ff;
             margin: 0 0 10px 0;
             letter-spacing: 4px;
         }
         #startScreen p {
-            font-size: 18px;
+            font-size: 16px;
             max-width: 300px;
             line-height: 1.5;
             opacity: 0.8;
         }
         #startBtn {
             margin-top: 30px;
-            padding: 15px 40px;
-            font-size: 20px;
+            padding: 12px 35px;
+            font-size: 18px;
             background: transparent;
             color: #0ff;
             border: 2px solid #0ff;
@@ -116,28 +138,68 @@
             text-shadow: 0 0 10px #0ff;
             box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
         }
+        
+        /* Предупреждение о горизонтальной ориентации */
+        #rotateWarning {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: #050510;
+            color: #0ff;
+            z-index: 1000;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-size: 18px;
+            padding: 20px;
+        }
+        #rotateWarning .icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+            animation: rotate 2s infinite;
+        }
+        @keyframes rotate {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(90deg); }
+        }
+        
+        /* Показываем предупреждение только в горизонтальной ориентации */
+        @media screen and (orientation: landscape) and (max-height: 500px) {
+            #rotateWarning { display: flex; }
+            #gameContainer { display: none; }
+        }
     </style>
 </head>
 <body>
-    <div id="ui">
-        <div>Счёт: <span id="score">0</span></div>
-        <div id="best">🏆 Рекорд: <span id="bestScore">0</span></div>
+    <!-- Предупреждение о повороте телефона -->
+    <div id="rotateWarning">
+        <div class="icon">📱</div>
+        <div>Поверните телефон вертикально<br>для комфортной игры</div>
     </div>
 
-    <div id="startScreen">
-        <h1>NEON JUMP</h1>
-        <p>Уворачивайся от красных полос!<br>Тапай в любую точку — шар отскочит в противоположную сторону 🎯<br><br>💡 Шар внизу? Тапай сбоку — он подпрыгнет!</p>
-        <button id="startBtn">▶ ИГРАТЬ</button>
-    </div>
+    <!-- Контейнер игры -->
+    <div id="gameContainer">
+        <div id="ui">
+            <div>Счёт: <span id="score">0</span></div>
+            <div id="best">🏆 Рекорд: <span id="bestScore">0</span></div>
+        </div>
 
-    <div id="gameOver">
-        <h1>GAME OVER</h1>
-        <div class="stats">Очки: <span id="finalScore">0</span></div>
-        <div class="stats">🏆 Рекорд: <span id="finalBest">0</span></div>
-        <button id="restartBtn">🔄 ИГРАТЬ СНОВА</button>
-    </div>
+        <div id="startScreen">
+            <h1>NEON JUMP</h1>
+            <p>Уворачивайся от красных полос!<br>Тапай в любую точку — шар отскочит в противоположную сторону 🎯<br><br>💡 Шар внизу? Тапай сбоку — он подпрыгнет!</p>
+            <button id="startBtn">▶ ИГРАТЬ</button>
+        </div>
 
-    <canvas id="canvas"></canvas>
+        <div id="gameOver">
+            <h1>GAME OVER</h1>
+            <div class="stats">Очки: <span id="finalScore">0</span></div>
+            <div class="stats">🏆 Рекорд: <span id="finalBest">0</span></div>
+            <button id="restartBtn">🔄 ИГРАТЬ СНОВА</button>
+        </div>
+
+        <canvas id="canvas"></canvas>
+    </div>
 
     <script src="https://st.max.ru/js/max-web-app.js"></script>
     
@@ -155,16 +217,18 @@
         // 2. НАСТРОЙКА ХОЛСТА
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
+        const container = document.getElementById('gameContainer');
         
         function resize() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
+            // Размер канваса = размер контейнера (макс 420px ширина)
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
         }
         resize();
         window.addEventListener('resize', resize);
 
-        // 3. ИГРОВЫЕ ПЕРЕМЕННЫЕ
-        let ball = { x: 0, y: 0, vx: 0, vy: 0, radius: 25, color: '#00ffff' };
+        // 3. ИГРОВЫЕ ПЕРЕМЕННЫЕ (УМЕНЬШЕННЫЕ РАЗМЕРЫ)
+        let ball = { x: 0, y: 0, vx: 0, vy: 0, radius: 12, color: '#00ffff' }; // БЫЛО 25, СТАЛО 12
         let particles = [];
         let obstacles = [];
         
@@ -177,13 +241,11 @@
         let obstacleInterval = 2000;
         let animationId = null;
 
-        // Константы физики
-        const IMPULSE_FORCE = 12;
-        const GRAVITY = 0.3;
-        const MAX_SPEED = 15;
-        
-        // НОВОЕ: Порог для "умного подскока" — нижняя треть экрана
-        const FLOOR_THRESHOLD = 0.7; // 70% высоты экрана
+        // Константы физики (адаптированы под маленькие размеры)
+        const IMPULSE_FORCE = 10; // Чуть меньше, т.к. шар меньше
+        const GRAVITY = 0.25;
+        const MAX_SPEED = 12;
+        const FLOOR_THRESHOLD = 0.7;
 
         const scoreEl = document.getElementById('score');
         const bestScoreEl = document.getElementById('bestScore');
@@ -252,7 +314,7 @@
             gameRunning = false;
             saveBestScore();
             
-            for (let i = 0; i < 50; i++) {
+            for (let i = 0; i < 40; i++) {
                 createParticles(ball.x, ball.y, '#ff0055');
             }
             
@@ -267,10 +329,11 @@
             gameOverScreen.style.display = 'flex';
         }
 
-        // 8. СОЗДАНИЕ ПРЕПЯТСТВИЯ
+        // 8. СОЗДАНИЕ ПРЕПЯТСТВИЯ (УМЕНЬШЕННЫЕ РАЗМЕРЫ)
         function spawnObstacle() {
-            const width = 80 + Math.random() * 120;
-            const height = 15;
+            // НОВОЕ: ширина препятствий уменьшена — от 40 до 100 пикселей (было 80-200)
+            const width = 40 + Math.random() * 60;
+            const height = 10; // БЫЛО 15
             const x = Math.random() * (canvas.width - width);
             
             obstacles.push({
@@ -278,7 +341,7 @@
                 y: -height,
                 width: width,
                 height: height,
-                speed: 3 + Math.random() * 2,
+                speed: 2.5 + Math.random() * 1.5, // Чуть медленнее, т.к. экран уже
                 color: '#ff0055',
                 passed: false
             });
@@ -369,22 +432,25 @@
                 checkObstacles();
             }
 
+            // Рисуем препятствия
             for (let obs of obstacles) {
                 ctx.fillStyle = obs.color;
-                ctx.shadowBlur = 20;
+                ctx.shadowBlur = 15;
                 ctx.shadowColor = obs.color;
                 ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
                 ctx.shadowBlur = 0;
             }
 
+            // Рисуем шар
             ctx.beginPath();
             ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
             ctx.fillStyle = ball.color;
-            ctx.shadowBlur = 30; 
+            ctx.shadowBlur = 20; 
             ctx.shadowColor = ball.color;
             ctx.fill();
             ctx.shadowBlur = 0;
 
+            // Рисуем искры
             for (let i = particles.length - 1; i >= 0; i--) {
                 let p = particles[i];
                 p.x += p.vx;
@@ -402,12 +468,12 @@
         }
 
         function createParticles(x, y, color) {
-            for (let i = 0; i < 15; i++) {
+            for (let i = 0; i < 12; i++) {
                 particles.push({
                     x: x, y: y,
-                    vx: (Math.random() - 0.5) * 8,
-                    vy: (Math.random() - 0.5) * 8,
-                    radius: Math.random() * 4 + 2,
+                    vx: (Math.random() - 0.5) * 6,
+                    vy: (Math.random() - 0.5) * 6,
+                    radius: Math.random() * 3 + 1,
                     life: 1,
                     color: color
                 });
@@ -421,14 +487,15 @@
             return `${r}, ${g}, ${b}`;
         }
 
-        // 11. НОВОЕ УПРАВЛЕНИЕ: Умный подскок
+        // 11. УПРАВЛЕНИЕ
         window.addEventListener('pointerdown', (e) => {
             if (!gameRunning) return;
             
-            const tapX = e.clientX;
-            const tapY = e.clientY;
+            // Получаем координаты относительно контейнера игры
+            const rect = container.getBoundingClientRect();
+            const tapX = e.clientX - rect.left;
+            const tapY = e.clientY - rect.top;
             
-            // Вектор ОТ точки тапа К шару (противоположное направление)
             const dx = ball.x - tapX;
             const dy = ball.y - tapY;
             
@@ -441,19 +508,13 @@
             const normalizedDx = dx / distance;
             const normalizedDy = dy / distance;
             
-            // НОВОЕ: Проверяем, находится ли шар в нижней трети экрана
             const isNearFloor = ball.y > canvas.height * FLOOR_THRESHOLD;
             
             if (isNearFloor) {
-                // Шар внизу — ВСЕГДА даём импульс вверх (подскок)
                 ball.vy = -IMPULSE_FORCE;
-                // Горизонтальное направление — по обычной логике
                 ball.vx = normalizedDx * IMPULSE_FORCE;
-                
-                // Особые искры для подскока (белые, яркие)
                 createParticles(ball.x, ball.y + ball.radius, '#ffffff');
             } else {
-                // Обычная логика отскока
                 ball.vx = normalizedDx * IMPULSE_FORCE;
                 ball.vy = normalizedDy * IMPULSE_FORCE;
             }
